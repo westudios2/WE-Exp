@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeExperiences - Hotel & Restaurant Reviews</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const Star = ({ className, style }) => (
+            <svg className={className} style={style} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+        );
+
+        const Plus = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+        );
+
+        const X = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+
+        const MapPin = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        );
+
+        const DollarSign = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        function WeExperiences() {
+            const [activeTab, setActiveTab] = useState('hotels');
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [reviews, setReviews] = useState({
+                hotels: [
+                    {
+                        id: 1,
+                        name: 'Grand Plaza Hotel',
+                        location: 'New York, NY',
+                        rating: 4.5,
+                        price: 3,
+                        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+                        description: 'Luxurious stay in the heart of Manhattan with stunning city views.'
+                    },
+                    {
+                        id: 2,
+                        name: 'Seaside Resort',
+                        location: 'Miami, FL',
+                        rating: 4.8,
+                        price: 4,
+                        image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&h=600&fit=crop',
+                        description: 'Beautiful beachfront property with exceptional service and amenities.'
+                    }
+                ],
+                restaurants: [
+                    {
+                        id: 1,
+                        name: 'La Cucina Italiana',
+                        location: 'Boston, MA',
+                        rating: 4.7,
+                        price: 3,
+                        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop',
+                        description: 'Authentic Italian cuisine with a modern twist. Amazing pasta dishes!'
+                    },
+                    {
+                        id: 2,
+                        name: 'Sushi Paradise',
+                        location: 'San Francisco, CA',
+                        rating: 4.9,
+                        price: 4,
+                        image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&h=600&fit=crop',
+                        description: 'Fresh, premium sushi in an elegant atmosphere. Best omakase in the city.'
+                    }
+                ]
+            });
+
+            const [newReview, setNewReview] = useState({
+                name: '',
+                location: '',
+                rating: 3,
+                price: 2,
+                image: '',
+                description: ''
+            });
+
+            const handleAddReview = () => {
+                if (newReview.name && newReview.location && newReview.description) {
+                    const review = {
+                        ...newReview,
+                        id: Date.now()
+                    };
+                    
+                    setReviews({
+                        ...reviews,
+                        [activeTab]: [...reviews[activeTab], review]
+                    });
+                    
+                    setNewReview({
+                        name: '',
+                        location: '',
+                        rating: 3,
+                        price: 2,
+                        image: '',
+                        description: ''
+                    });
+                    
+                    setShowAddForm(false);
+                }
+            };
+
+            const StarRating = ({ rating }) => {
+                return (
+                    <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                className={`w-5 h-5 ${
+                                    star <= rating
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : star - 0.5 <= rating
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'text-gray-300'
+                                }`}
+                                style={
+                                    star - 0.5 === rating
+                                        ? {
+                                            clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)'
+                                        }
+                                        : {}
+                                }
+                            />
+                        ))}
+                        <span className="ml-2 text-gray-600 font-semibold">{rating.toFixed(1)}</span>
+                    </div>
+                );
+            };
+
+            const PriceIndicator = ({ level }) => {
+                return (
+                    <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4].map((price) => (
+                            <DollarSign
+                                key={price}
+                                className={`w-4 h-4 ${
+                                    price <= level ? 'text-green-600' : 'text-gray-300'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+                    {/* Header */}
+                    <header className="bg-white shadow-md">
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                WeExperiences
+                            </h1>
+                            <p className="text-gray-600 mt-2">Share your hotel and restaurant experiences</p>
+                        </div>
+                    </header>
+
+                    {/* Navigation Tabs */}
+                    <div className="max-w-7xl mx-auto px-4 mt-8">
+                        <div className="flex gap-4 border-b border-gray-200">
+                            <button
+                                onClick={() => setActiveTab('hotels')}
+                                className={`px-6 py-3 font-semibold transition-all ${
+                                    activeTab === 'hotels'
+                                        ? 'text-blue-600 border-b-2 border-blue-600'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Hotels
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('restaurants')}
+                                className={`px-6 py-3 font-semibold transition-all ${
+                                    activeTab === 'restaurants'
+                                        ? 'text-blue-600 border-b-2 border-blue-600'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Restaurants
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        {/* Add Review Button */}
+                        <div className="flex justify-end mb-6">
+                            <button
+                                onClick={() => setShowAddForm(!showAddForm)}
+                                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all shadow-lg"
+                            >
+                                {showAddForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                {showAddForm ? 'Cancel' : 'Add Review'}
+                            </button>
+                        </div>
+
+                        {/* Add Review Form */}
+                        {showAddForm && (
+                            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                                    Add New {activeTab === 'hotels' ? 'Hotel' : 'Restaurant'} Review
+                                </h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">Name</label>
+                                        <input
+                                            type="text"
+                                            value={newReview.name}
+                                            onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder={`Enter ${activeTab === 'hotels' ? 'hotel' : 'restaurant'} name`}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">Location</label>
+                                        <input
+                                            type="text"
+                                            value={newReview.location}
+                                            onChange={(e) => setNewReview({ ...newReview, location: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="City, State"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">
+                                            Rating: {newReview.rating.toFixed(1)} / 5.0
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="5"
+                                            step="0.1"
+                                            value={newReview.rating}
+                                            onChange={(e) => setNewReview({ ...newReview, rating: parseFloat(e.target.value) })}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>0</span>
+                                            <span>1</span>
+                                            <span>2</span>
+                                            <span>3</span>
+                                            <span>4</span>
+                                            <span>5</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">
+                                            Price Level: {'$'.repeat(newReview.price)}
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="4"
+                                            step="1"
+                                            value={newReview.price}
+                                            onChange={(e) => setNewReview({ ...newReview, price: parseInt(e.target.value) })}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>$</span>
+                                            <span>$$</span>
+                                            <span>$$$</span>
+                                            <span>$$$$</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">Image URL</label>
+                                        <input
+                                            type="text"
+                                            value={newReview.image}
+                                            onChange={(e) => setNewReview({ ...newReview, image: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="https://example.com/image.jpg"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">Description</label>
+                                        <textarea
+                                            value={newReview.description}
+                                            onChange={(e) => setNewReview({ ...newReview, description: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            rows="4"
+                                            placeholder="Share your experience..."
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleAddReview}
+                                        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold"
+                                    >
+                                        Submit Review
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Reviews Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {reviews[activeTab].map((review) => (
+                                <div
+                                    key={review.id}
+                                    className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all"
+                                >
+                                    <div className="relative h-64">
+                                        <img
+                                            src={review.image}
+                                            alt={review.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    
+                                    <div className="p-6">
+                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">{review.name}</h3>
+                                        
+                                        <div className="flex items-center gap-2 text-gray-600 mb-4">
+                                            <MapPin className="w-4 h-4" />
+                                            <span>{review.location}</span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between mb-4">
+                                            <StarRating rating={review.rating} />
+                                            <PriceIndicator level={review.price} />
+                                        </div>
+
+                                        <p className="text-gray-600 leading-relaxed">{review.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {reviews[activeTab].length === 0 && (
+                            <div className="text-center py-20">
+                                <p className="text-gray-500 text-xl">No reviews yet. Be the first to add one!</p>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-white mt-20 py-8 border-t border-gray-200">
+                        <div className="max-w-7xl mx-auto px-4 text-center text-gray-600">
+                            <p>&copy; 2024 WeExperiences.com - Share Your Adventures</p>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<WeExperiences />);
+    </script>
+</body>
+</html>
