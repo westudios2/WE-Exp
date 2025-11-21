@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeExperiences - Diagnostic Mode</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-4" style="color: #8B4513">WeExperiences - Diagnostic Tool</h1>
+        <p class="mb-6 text-gray-600">This page will test your Firebase connection and show any errors.</p>
+
+        <!-- Firebase Config Section -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Step 1: Enter Your Firebase Config</h2>
+            <p class="text-sm text-gray-600 mb-4">Paste your Firebase config values below:</p>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">API Key:</label>
+                    <input type="text" id="apiKey" placeholder="AIzaSy..." class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Auth Domain:</label>
+                    <input type="text" id="authDomain" placeholder="your-project.firebaseapp.com" class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Project ID:</label>
+                    <input type="text" id="projectId" placeholder="your-project" class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Storage Bucket:</label>
+                    <input type="text" id="storageBucket" placeholder="your-project.appspot.com" class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Messaging Sender ID:</label>
+                    <input type="text" id="messagingSenderId" placeholder="123456789012" class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">App ID:</label>
+                    <input type="text" id="appId" placeholder="1:123456789012:web:..." class="w-full px-3 py-2 border rounded">
+                </div>
+            </div>
+            
+            <button onclick="initializeFirebase()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                Initialize Firebase
+            </button>
+        </div>
+
+        <!-- Test Results Section -->
+        <div id="results" class="space-y-4">
+            <!-- Results will appear here -->
+        </div>
+    </div>
+
+    <script>
+        let db;
+        
+        function addResult(title, message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const colors = {
+                success: 'bg-green-50 border-green-500 text-green-800',
+                error: 'bg-red-50 border-red-500 text-red-800',
+                info: 'bg-blue-50 border-blue-500 text-blue-800',
+                warning: 'bg-yellow-50 border-yellow-500 text-yellow-800'
+            };
+            
+            const resultHTML = `
+                <div class="border-l-4 p-4 ${colors[type]} rounded">
+                    <h3 class="font-bold mb-2">${title}</h3>
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML += resultHTML;
+        }
+
+        function initializeFirebase() {
+            // Clear previous results
+            document.getElementById('results').innerHTML = '';
+            
+            // Get values from inputs
+            const firebaseConfig = {
+                apiKey: document.getElementById('apiKey').value.trim(),
+                authDomain: document.getElementById('authDomain').value.trim(),
+                projectId: document.getElementById('projectId').value.trim(),
+                storageBucket: document.getElementById('storageBucket').value.trim(),
+                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+                appId: document.getElementById('appId').value.trim()
+            };
+
+            // Validate config
+            if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+                addResult('❌ Configuration Error', 'Please fill in at least API Key and Project ID', 'error');
+                return;
+            }
+
+            addResult('🔧 Step 1: Config Validation', 'Config looks valid!', 'success');
+
+            try {
+                // Initialize Firebase
+                if (firebase.apps.length === 0) {
+                    firebase.initializeApp(firebaseConfig);
+                    addResult('✅ Step 2: Firebase Initialized', 'Firebase app initialized successfully!', 'success');
+                } else {
+                    addResult('✅ Step 2: Firebase Already Initialized', 'Using existing Firebase instance', 'success');
+                }
+
+                db = firebase.firestore();
+                addResult('✅ Step 3: Firestore Connected', 'Firestore instance created!', 'success');
+
+                // Test Firestore connection
+                testFirestore();
+                
+            } catch (error) {
+                addResult('❌ Firebase Initialization Failed', `Error: ${error.message}`, 'error');
+                addResult('🔍 What This Means', 'Your Firebase configuration has an error. Double-check your config values from Firebase Console.', 'warning');
+            }
+        }
+
+        async function testFirestore() {
+            addResult('🔄 Step 4: Testing Firestore Write...', 'Attempting to write a test document...', 'info');
+            
+            try {
+                // Try to write a test document
+                const testData = {
+                    test: true,
+                    message: 'This is a diagnostic test',
+                    timestamp: new Date().toISOString()
+                };
+
+                const docRef = await db.collection('diagnostic-test').add(testData);
+                
+                addResult('✅ Step 4: Write Test PASSED', `Successfully wrote document with ID: ${docRef.id}`, 'success');
+                addResult('🎉 DIAGNOSIS: Firestore is Working!', 'Your Firebase setup is correct! The issue might be in your main code.', 'success');
+                
+                // Clean up test document
+                await docRef.delete();
+                addResult('🧹 Cleanup', 'Test document deleted successfully', 'info');
+                
+                // Test read
+                testFirestoreRead();
+                
+            } catch (error) {
+                addResult('❌ Step 4: Write Test FAILED', `Error: ${error.message}`, 'error');
+                
+                // Provide specific guidance based on error
+                if (error.message.includes('Missing or insufficient permissions')) {
+                    addResult('🔍 Diagnosis: Permission Error', 
+                        `Your Firestore security rules are blocking writes. Fix: Go to Firebase Console → Firestore Database → Rules tab. Paste this code:
+                        
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+Then click Publish.`, 'warning');
+                } else if (error.message.includes('network')) {
+                    addResult('🔍 Diagnosis: Network Error', 'Cannot connect to Firebase. Check your internet connection.', 'warning');
+                } else if (error.message.includes('not found') || error.message.includes('does not exist')) {
+                    addResult('🔍 Diagnosis: Database Not Created', 
+                        'Firestore database not initialized. Go to Firebase Console → Firestore Database → Click "Create database" → Start in test mode.', 'warning');
+                } else {
+                    addResult('🔍 Unknown Error', `Something went wrong: ${error.message}. Try checking Firebase Console for more details.`, 'warning');
+                }
+            }
+        }
+
+        async function testFirestoreRead() {
+            addResult('🔄 Step 5: Testing Firestore Read...', 'Attempting to read from Firestore...', 'info');
+            
+            try {
+                const snapshot = await db.collection('reviews').limit(1).get();
+                
+                if (snapshot.empty) {
+                    addResult('✅ Step 5: Read Test PASSED', 'Successfully connected to Firestore! (No reviews yet, but that\'s okay)', 'success');
+                } else {
+                    addResult('✅ Step 5: Read Test PASSED', `Found ${snapshot.size} existing review(s)!`, 'success');
+                }
+                
+                addResult('🎊 FINAL RESULT: Everything Works!', 
+                    'Your Firebase is set up correctly! You can now use the main site. Copy your config values and use them in the main index.html file.', 'success');
+                
+            } catch (error) {
+                addResult('❌ Step 5: Read Test FAILED', `Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
